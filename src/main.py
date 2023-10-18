@@ -1,9 +1,25 @@
-from evalute import get_params
+from evalute import get_params, params, get_params_multi
+import time
+from multiprocessing import Pool
+from sklearn.model_selection import ParameterGrid
+
 
 if __name__ == '__main__':
-
+    start_time = time.time()  # 记录开始时间
     path = '../data/raw/data/DRIVE/'
-    params, dice = get_params()
+    print(params['m'])
+    param_grid = ParameterGrid(params)
+    with Pool() as pool:
+        results = pool.map(get_params_multi, param_grid)
+    best_dice, best_params = max(results, key=lambda x: x[0])
+
+    end_time = time.time()  # 记录结束时间
+
+    elapsed_time = end_time - start_time  # 计算运行时间
+    
+    print(f'Best Dice Score: {best_dice:.4f}')
+    print(f'Best Parameters: {best_params}')
+    print(f'total time:{elapsed_time:.4f}')
     # image_list = []
     # with os.scandir(path + 'images') as entries:
     #     image_list = [entry.name for entry in entries if entry.is_file()]
