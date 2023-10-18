@@ -3,7 +3,7 @@
 '''
 import cv2
 import os
-
+import numpy as np
 
 class ImageProcessor:
     def __init__(self, image, save_path='./processed'):
@@ -48,7 +48,7 @@ class ImageProcessor:
         #cv2.imwrite(os.path.join(self.save_path, f"Gaussian_G.png"), g_gaussian)
         return g_gaussian
     
-    def processData(self, image = None, kernel_size=(5,5), sigma=0):
+    def processData(self, image = None, kernel_size=(5,5), sigma=0, clipLimit=2.0, tileGridSize=(10,10), gamma=1.5):
         if image is None:
             image = self.image
         # 对G通道进行直方图均衡处理
@@ -58,24 +58,32 @@ class ImageProcessor:
 
        
 
-        g_channel_clahe = self.clahe_processing(image=gassuian_output)
+        g_channel_clahe = self.clahe_processing(limit=clipLimit, gridSize=tileGridSize, image=gassuian_output)
+
+        g_channel_gamma = self.gamma_processing(image=g_channel_clahe, gamma=gamma)
         #cv2.imwrite(os.path.join(self.save_path, f"Processed.png"), g_channel_clahe)
-        return g_channel_clahe
+        return g_channel_gamma
     
-    def clahe_processing(self, image=None):
+    def clahe_processing(self, limit, gridSize, image=None):
         if image is None:
             image = self.image
         # 创建CLAHE对象
-        clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(10,10))
+        clahe = cv2.createCLAHE(clipLimit=limit, tileGridSize=gridSize)
         
         # 对G通道应用CLAHE处理
         g_channel_clahe = clahe.apply(image)
         
+    
         #cv2.imwrite(os.path.join(self.save_path, f"CLAHE_G.png"), g_channel_clahe)
         return g_channel_clahe
+    def gamma_processing(self, image=None, gamma=1.0):
+        if image is None:
+            image = self.image
+        invGamma = 1.0 / gamma
+        table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
 
+        return cv2.LUT(image, table)
 
-#TODO    gamma校正
 
 
 class ImageChannelSperator:

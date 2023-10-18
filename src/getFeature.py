@@ -88,7 +88,7 @@ class featureExtractor:
     def apply_otsu(self, thresh, maxval, image=None):
         if image is None:
             image = self.image
-        _, th1 = cv2.threshold(image, 30, 255, cv2.THRESH_OTSU)
+        _, th1 = cv2.threshold(image, thresh, maxval, cv2.THRESH_OTSU)
         return th1
     
     
